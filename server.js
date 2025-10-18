@@ -1,9 +1,13 @@
 import express from "express";
 import axios from "axios";
-import dotenv from "dotenv";
 import cors from "cors";
 
-dotenv.config();
+// Only load dotenv in development
+if (process.env.NODE_ENV !== "production") {
+  const dotenv = await import("dotenv");
+  dotenv.config();
+}
+
 const app = express();
 app.use(cors());
 
@@ -13,11 +17,11 @@ app.get("/weather", async (req, res) => {
 
   try {
     const response = await axios.get(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city},&appid=${process.env.OPENWEATHER_KEY}&units=metric`
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.OPENWEATHER_KEY}&units=metric`
     );
     res.json(response.data);
   } catch (err) {
-    console.error(err.response?.data || err.message);
+    console.error("❌ API error:", err.response?.data || err.message);
     res.status(err.response?.status || 500).json({
       error: "Failed to fetch weather data",
       details: err.response?.data || err.message,
@@ -25,6 +29,5 @@ app.get("/weather", async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT, () =>
-  console.log(`✅ Server running on port ${process.env.PORT}`)
-);
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
